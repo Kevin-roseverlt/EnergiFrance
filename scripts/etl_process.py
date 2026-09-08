@@ -90,7 +90,7 @@ def nettoyer_prod_mensuelle():
     
     df_clean = pivot_production(df, id_vars=['annee', 'mois_num', 'code_reg', 'nom_reg'])
     
-    df_clean.to_csv(os.path.join(PROCESSED_DIR, 'prod_mensuelle_clean.csv'), sep=';', encoding='utf-8-sig', index=False)
+    df_clean.to_csv(os.path.join(PROCESSED_DIR, 'prod_mensuelle_clean_by_reg.csv'), sep=';', encoding='utf-8-sig', index=False)
 
 def nettoyer_prod_annuelle():
     print(f"🔹 3/3 Traitement Production Annuelle ({FILE_PROD_AN})...")
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         nettoyer_prod_mensuelle()
         df_p = nettoyer_prod_annuelle()
         creer_bilan(df_c, df_p)
-        print("\n🎉 ETL terminé avec succès !")
+        print("\n ETL terminé avec succès !")
         
     except Exception as e:
         print(f"\n❌ Erreur : {e}")
