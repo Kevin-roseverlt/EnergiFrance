@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import json
 
 # --- 1. CONFIGURATION ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -117,7 +118,33 @@ def nettoyer_prod_annuelle():
     df_global = df_clean.groupby(['annee', 'code_reg', 'nom_reg'])['prod_mwh'].sum().reset_index()
     return df_global
 
-# --- 3. FONCTION DE FUSION (BILAN) ---
+# --- 3. GÉOMÉTRIE DES RÉGIONS (pour la carte) ---
+
+def extraire_regions_geojson():
+    print("🔹 Extraction de la géométrie des régions (regions_geo.json)...")
+    path = os.path.join(RAW_DIR, FILE_PROD_AN)
+    df = pd.read_csv(path, sep=';', encoding='utf-8', dtype={'Code INSEE région': str})
+    df = df.rename(columns={'Code INSEE région': 'code_reg', 'Région': 'nom_reg'})
+
+    df_uniques = df.drop_duplicates(subset='code_reg')
+
+    features = []
+    for _, row in df_uniques.iterrows():
+        geometry = json.loads(row['Géo-shape région'])
+        features.append({
+            'type': 'Feature',
+            'properties': {'code_reg': row['code_reg'], 'nom_reg': row['nom_reg']},
+            'geometry': geometry,
+        })
+
+    geojson = {'type': 'FeatureCollection', 'features': features}
+
+    out_path = os.path.join(PROCESSED_DIR, 'regions_geo.json')
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(geojson, f, ensure_ascii=False)
+    print(f"✅ Géométrie de {len(features)} régions extraite : {out_path}")
+
+# --- 4. FONCTION DE FUSION (BILAN) ---
 
 def creer_bilan(df_conso, df_prod):
     print("🔹 Création du Bilan Global (Fusion)...")
@@ -142,15 +169,16 @@ def creer_bilan(df_conso, df_prod):
     df_final.to_csv(out_path, sep=';', encoding='utf-8-sig', index=False)
     print(f"✅ Fichier Bilan créé : {out_path}")
 
-# --- 4. EXECUTION ---
+# --- 5. EXECUTION ---
 if __name__ == "__main__":
     if not os.path.exists(PROCESSED_DIR):
         os.makedirs(PROCESSED_DIR)
-        
+
     try:
         df_c = nettoyer_conso_enedis()
         nettoyer_prod_mensuelle()
         df_p = nettoyer_prod_annuelle()
+        extraire_regions_geojson()
         creer_bilan(df_c, df_p)
         print("\n ETL terminé avec succès !")
         
