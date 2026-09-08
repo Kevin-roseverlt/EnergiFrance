@@ -77,6 +77,7 @@ def onglet_consommation(df_conso):
         labels={"annee": "Année"},
         title=f"Répartition par secteur — {choix_region}",
     )
+    fig_secteur.update_layout(hovermode="x unified")
     st.plotly_chart(fig_secteur, use_container_width=True)
 
     st.markdown("#### Consommation par département")
@@ -103,6 +104,7 @@ def onglet_mix_energetique(df_prod):
         labels={"annee": "Année", "prod_mwh": "Production (MWh)", "filiere": "Filière"},
         title=f"Production par filière — {choix_region}",
     )
+    fig_mix.update_layout(hovermode="x unified")
     st.plotly_chart(fig_mix, use_container_width=True)
 
     derniere_annee = df_filtre["annee"].max()
@@ -202,6 +204,7 @@ def onglet_production_mensuelle(df_prod_mois):
         labels={"date": "Mois", "prod_mwh": "Production (MWh)", "filiere": "Filière"},
         title=f"Production mensuelle par filière — {choix_region}",
     )
+    fig_filiere.update_layout(hovermode="x unified")
     st.plotly_chart(fig_filiere, use_container_width=True)
 
 
